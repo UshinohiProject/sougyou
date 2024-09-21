@@ -1,0 +1,29 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/starter-sample.css">
+    <script src="https://obniz.com/js/jquery-3.2.1.min.js"></script>
+    <script src="https://unpkg.com/obniz@3.31.0/obniz.js"></script>
+</head>
+<body>
+  <h1>Receive Data from Arduino by Obniz</h1>
+
+  <script>
+    const obniz = new Obniz("OBNIZ_ID_HERE");
+
+    obniz.onconnect = async function() {
+      console.log("Connected to obniz");
+
+      // UART初期化 (ボーレート9600)
+      var uart = obniz.getFreeUart();
+      uart.start({ tx:0, rx:1, baud: 9600 });
+      uart.onreceive = function(data) {
+        console.log("data: ")
+        console.log(data[0]); // Arduinoからのデータを表示
+      };
+    };
+  </script>
+</body>
+</html>
