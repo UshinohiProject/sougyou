@@ -1,0 +1,189 @@
+<html>
+
+</html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/starter-sample.css">
+    <script src="https://obniz.com/js/jquery-3.2.1.min.js"></script>
+    <script src="https://unpkg.com/obniz@3.31.0/obniz.js"></script>
+    <style>
+        div.message {
+            font-size: 100px;
+            text-align: center;
+            color: red;
+        }
+
+        div.orientation {
+            font-size: 60px;
+            text-align: center;
+        }
+
+        h1 {
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>The Best Bicycle Simulator</h1>
+    <div id="message" class="message"></div>
+    <div id="orientation" class="orientation"></div>
+
+    <script>
+        // メインの実行部分を非同期関数内で実行
+        (async () => {
+            let orientationMessages = [
+                "これよりシミュレーションを開始します。",
+                "目の前で起きる事象に適切に対処して</br>自信を持って自転車を運転できるようになりましょう。",
+                "それでは、シミュレーションを開始します。"
+            ]
+            for (let i = 0; i < orientationMessages.length; i++) {
+                document.getElementById("orientation").innerHTML = orientationMessages[i];
+                console.log(orientationMessages[i].length / 5);
+                await wait(orientationMessages[i].length / 5);
+            }
+            for (let i = 5; i > 0; i--) {
+                document.getElementById("orientation").innerHTML = i;
+                await wait(1);
+            }
+            document.getElementById("orientation").innerHTML = "START";
+            await wait(1);
+            document.getElementById("orientation").innerHTML = "";
+            for (let i = 0; i < 5; i++) {
+                var randomSimulationNum = Math.floor(Math.random() * 3);
+                switch (randomSimulationNum) {
+                    case 0:
+                        console.log("Start BREAK simulation.")
+                        await breakSimulation();
+                        break;
+                    case 1:
+                        console.log("Start SUN simulation.")
+                        await sendSignalToSubSystem(1);
+                        break;
+                    case 2:
+                        console.log("Start WIND simulation.")
+                        await sendSignalToSubSystem(3);
+                        break;
+                    default:
+                        console.warn("Undefined simulation number selected: " + randomSimulationNum);
+                }
+                console.log("Simulation #" + i + " DONE.");
+                await wait(3);
+                document.getElementById("message").innerHTML = "";
+            }
+            console.log("All simulations were DONE");
+            document.getElementById("message").innerHTML = "シミュレーションは終了です。</br>お疲れ様でした。";
+        })();
+
+        function breakSimulation() {
+            return new Promise((resolve) => {
+                let break1 = false;
+                let break2 = false;
+                const obnizOrg = new Obniz("OBNIZ_ID_HERE");
+
+                obnizOrg.onconnect = async function () {
+                    var randomSecond = Math.floor(Math.random() * 5);
+                    await wait(randomSecond);
+                    document.getElementById("message").innerHTML = "危ない!!!!</br>ブレーキ!!!!";
+                    const startTime = new Date();
+                    console.log("Connected to obniz");
+
+                    // UART初期化 (ボーレート9600)
+                    var uart = obnizOrg.getFreeUart();
+                    uart.start({ tx: 0, rx: 1, baud: 9600 });
+                    uart.onreceive = function (data) {
+                        var data = data[0];
+                        console.log("data: " + data);
+
+                        switch (data) {
+                            case 0:
+                                break1 = false;
+                                break;
+                            case 1:
+                                break1 = true;
+                                break;
+                            case 2:
+                                break2 = false;
+                                break;
+                            case 3:
+                                break2 = true;
+                                break;
+                            default:
+                                console.warn("Unknown data received: " + data);
+                        }
+
+                        // break1 と break2 が共に true の場合に "Nice!" を表示
+                        if (break1 && break2) {
+                            const endTime = new Date();
+                            const elapsedTime = (endTime - startTime) / 1000;
+                            if (elapsedTime < 1) {
+                                document.getElementById("message").innerHTML = "反応時間: " + elapsedTime + "秒</br>Perfect!!!";
+                            } else if (elapsedTime < 2) {
+                                document.getElementById("message").innerHTML = "反応時間: " + elapsedTime + "秒</br>Nice!!";
+                            } else {
+                                document.getElementById("message").innerHTML = "反応時間: " + elapsedTime + "秒</br>おっそ。頑張りましょう。";
+                            }
+                            obnizOrg.close();
+                            console.log("Disconnected from obniz");
+                            resolve(); // `Promise`を完了し、次の処理に進める
+                        }
+                    };
+                };
+
+                obnizOrg.onclose = function () {
+                    console.log("Connection closed with obnizOrg.");
+                    // 接続が閉じられた場合にも `resolve()` を呼び出す
+                    resolve();
+                };
+            });
+        }
+
+        function sendSignalToSubSystem(signal) {
+            return new Promise((resolve) => {
+                console.log("signal: " + signal);
+                const obnizSub = new Obniz("5148-3144");
+
+                obnizSub.onconnect = async function () {
+                    console.log("Connected to obniz");
+
+                    // UARTの設定 (rx, tx ピンの設定)
+                    var uart = obnizSub.getFreeUart();
+                    uart.start({ tx: 0, rx: 1, baud: 9600 });
+                    console.log("UART started");
+
+                    uart.send(signal); // Arduino Sub機にsignalを送信
+                    console.log("Start signal sent");
+                    if (signal == 1) {
+                        await wait(2); // LEDライトの点灯まで約2秒のタイムラグがあるため
+                        document.getElementById("message").innerHTML = "西日だ!!!</br>目を隠して!!!!";
+                    } else {
+                        document.getElementById("message").innerHTML = "突風だ!!!</br>身をこなして!!!!";
+                    }
+                    await wait(6);
+                    uart.send(signal - 1); // Arduino Sub機にsignalを送信
+                    console.log("End signal sent");
+                    document.getElementById("message").innerHTML = "Nice!";
+                    await wait(1);
+                    obnizSub.close();
+                    console.log("Disconnected from obniz");
+                    resolve();
+                }
+
+                obnizSub.onclose = function () {
+                    console.log("Connection closed with obnizSub.");
+                    // 接続が閉じられた場合にも `resolve()` を呼び出す
+                    resolve();
+                };
+            });
+        }
+
+        async function wait(second) {
+            return new Promise(resolve => setTimeout(resolve, 1000 * second));
+        }
+    </script>
+</body>
+
+</html>
