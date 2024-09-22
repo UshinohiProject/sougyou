@@ -1,0 +1,40 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/starter-sample.css">
+    <script src="https://obniz.com/js/jquery-3.2.1.min.js"></script>
+    <script src="https://unpkg.com/obniz@3.31.0/obniz.js"></script>
+</head>
+
+<body>
+    <h1>Arduino LED Control via Obniz</h1>
+
+    <script>
+        // obnizのデバイスIDを入力
+        const obniz = new Obniz("OBNIZ_ID_HERE");
+
+        obniz.onconnect = async function () {
+            console.log("connected to obniz");
+
+            // UARTの設定 (rx, tx ピンの設定)
+            var uart = obniz.getFreeUart();
+            uart.start({ tx: 0, rx: 1, baud: 9600 });
+            console.log("UART started");
+            uart.send(1); // Arduinoに「1」を送信
+            console.log("LED ON command sent");
+
+            await wait(5);
+            uart.send(0); // Arduinoに「0」を送信
+            console.log("LED OFF command sent");
+        };
+
+        async function wait(second) {
+            return new Promise(resolve => setTimeout(resolve, 1000 * second));
+        }
+    </script>
+</body>
+
+</html>
