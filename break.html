@@ -1,0 +1,67 @@
+<html></html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/starter-sample.css">
+    <script src="https://obniz.com/js/jquery-3.2.1.min.js"></script>
+    <script src="https://unpkg.com/obniz@3.31.0/obniz.js"></script>
+    <style>
+        div.message {
+            font-size: 100px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+  <h1>ブレーキ特訓</h1>
+  <div id="message" class="message"></div>
+
+  <script>
+    const obniz = new Obniz("OBNIZ_ID_HERE");
+    let break1 = false;
+    let break2 = false;
+
+    obniz.onconnect = async function() {
+        var randomSecond = 5 + Math.floor( Math.random() * 5 );
+        await wait(randomSecond);
+        document.getElementById("message").innerHTML = "危ない!!!!ブレーキ!!!!";
+        console.log("Connected to obniz");
+
+        // UART初期化 (ボーレート9600)
+        var uart = obniz.getFreeUart();
+        uart.start({ tx:0, rx:1, baud: 9600 });
+        uart.onreceive = function(data) {
+            var data = data[0];
+            console.log("data: " + data);
+            
+            switch (data) {
+                case 0:
+                    break1 = false;
+                    break;
+                case 1:
+                    break1 = true;
+                  break;
+                case 2:
+                    break2 = false;
+                    break;
+                case 3:
+                    break2 = true;
+                    break;
+                default:
+                    console.warn("Unknown data received: " + data);
+            }
+          
+            // break1 と break2 が共に true の場合に "Nice!" を表示
+            if (break1 && break2) {
+                document.getElementById("message").innerHTML = "Nice!";
+            }
+        };
+    };
+
+    async function wait(second) {
+        return new Promise(resolve => setTimeout(resolve, 1000 * second));
+    }
+  </script>
+</body>
+</html>
