@@ -24,16 +24,28 @@
         uart.start({ tx: 0, rx: 1, baud: 9600 });
         console.log("UART started");
 
-        // "LED ON"ボタンをクリックしたときの処理
+        // "光よ"ボタンをクリックしたときの処理
         document.getElementById("onButton").addEventListener("click", function () {
           uart.send(1); // Arduinoに「1」を送信
           console.log("LED ON command sent");
         });
 
-        // "LED OFF"ボタンをクリックしたときの処理
+        // "闇よ"ボタンをクリックしたときの処理
         document.getElementById("offButton").addEventListener("click", function () {
           uart.send(0); // Arduinoに「0」を送信
           console.log("LED OFF command sent");
+        });
+
+        // "風よ"ボタンをクリックしたときの処理
+        document.getElementById("onButton").addEventListener("click", function () {
+          uart.send(3); // Arduinoに「3」を送信
+          console.log("FAN ON command sent");
+        });
+
+        // "凪よ"ボタンをクリックしたときの処理
+        document.getElementById("offButton").addEventListener("click", function () {
+          uart.send(2); // Arduinoに「2」を送信
+          console.log("FAN OFF command sent");
         });
       };
     </script>
