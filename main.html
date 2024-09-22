@@ -7,6 +7,27 @@
     <link rel="stylesheet" href="/css/starter-sample.css">
     <script src="https://obniz.com/js/jquery-3.2.1.min.js"></script>
     <script src="https://unpkg.com/obniz@3.31.0/obniz.js"></script>
+    <style>
+        #needle {
+            width: 2px;
+            height: 100px;
+            background-color: red;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-origin: bottom;
+            transform: rotate(0deg);
+        }
+
+        #gauge {
+            width: 200px;
+            height: 200px;
+            border: 2px solid black;
+            border-radius: 50%;
+            position: relative;
+            margin: 50px auto;
+        }
+    </style>
 </head>
 
 <body>
@@ -14,8 +35,13 @@
     <div id="obniz-debug"></div>
     <h1>sougyou</h1>
 
+    <div id="gauge">
+        <div id="needle"></div>
+    </div>
+
     <script>
         const obniz = new Obniz("OBNIZ_ID_HERE");
+        let x; // ハンドルの角度
 
         obniz.onconnect = async function () {
             console.log("Connected to obniz");
@@ -25,11 +51,11 @@
 
             // HTML要素を生成して表示する
             let xDisplay = document.createElement("div");
-            let yDisplay = document.createElement("div");
-            let zDisplay = document.createElement("div");
+            // let yDisplay = document.createElement("div");
+            // let zDisplay = document.createElement("div");
             document.body.appendChild(xDisplay);
-            document.body.appendChild(yDisplay);
-            document.body.appendChild(zDisplay);
+            // document.body.appendChild(yDisplay);
+            // document.body.appendChild(zDisplay);
 
             obniz.uart0.onreceive = function (data) {
                 // 受信したデータを文字列に変換
@@ -38,17 +64,17 @@
                 // カンマで区切られたデータを配列に変換
                 let values = text.trim().split(",");
                 if (values.length === 3) {
-                    let x = parseFloat(values[0]);
-                    let y = parseFloat(values[1]);
-                    let z = parseFloat(values[2]);
-
-                    // データをHTML要素に表示
-                    xDisplay.innerText = "X軸: " + x.toFixed(2);
-                    yDisplay.innerText = "Y軸: " + y.toFixed(2);
-                    zDisplay.innerText = "Z軸: " + z.toFixed(2);
+                    x = parseFloat(values[0]);
+                    updateNeedle(x);
                 }
             };
         };
+
+        function updateNeedle(angle) {
+            // 針の角度を更新する
+            let needle = document.getElementById("needle");
+            needle.style.transform = `rotate(${angle}deg)`;
+        }
     </script>
 </body>
 
