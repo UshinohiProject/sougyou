@@ -32,6 +32,26 @@
     <div id="message" class="message"></div>
     <div id="orientation" class="orientation"></div>
 
+    <audio id="simulation0" src="https://raw.githubusercontent.com/UshinohiProject/sougyou/main/voice/simulation0.wav"
+        preload="auto"></audio>
+    <audio id="simulation1" src="https://raw.githubusercontent.com/UshinohiProject/sougyou/main/voice/simulation1.wav"
+        preload="auto"></audio>
+    <audio id="simulation2" src="https://raw.githubusercontent.com/UshinohiProject/sougyou/main/voice/simulation2.wav"
+        preload="auto"></audio>
+    <audio id="orientation0" src="https://raw.githubusercontent.com/UshinohiProject/sougyou/main/voice/orientation0.wav"
+        preload="auto"></audio>
+    <audio id="orientation1" src="https://raw.githubusercontent.com/UshinohiProject/sougyou/main/voice/orientation1.wav"
+        preload="auto"></audio>
+    <audio id="orientation2" src="https://raw.githubusercontent.com/UshinohiProject/sougyou/main/voice/orientation2.wav"
+        preload="auto"></audio>
+    <audio id="nice" src="https://raw.githubusercontent.com/UshinohiProject/sougyou/main/voice/nice.wav"
+        preload="auto"></audio>
+    <audio id="perfect" src="https://raw.githubusercontent.com/UshinohiProject/sougyou/main/voice/perfect.wav"
+        preload="auto"></audio>
+    <audio id="bad" src="https://raw.githubusercontent.com/UshinohiProject/sougyou/main/voice/bad.wav"
+        preload="auto"></audio>
+
+
     <script>
         // メインの実行部分を非同期関数内で実行
         (async () => {
@@ -42,6 +62,8 @@
             ]
             for (let i = 0; i < orientationMessages.length; i++) {
                 document.getElementById("orientation").innerHTML = orientationMessages[i];
+                var audioId = "orientation" + i;
+                playAudio(audioId);
                 console.log(orientationMessages[i].length / 5);
                 await wait(orientationMessages[i].length / 5);
             }
@@ -89,6 +111,8 @@
                     await wait(randomSecond);
                     document.getElementById("message").innerHTML = "危ない!!!!</br>ブレーキ!!!!";
                     const startTime = new Date();
+                    var audioId = "simulation0";
+                    playAudio(audioId);
                     console.log("Connected to obniz");
 
                     // UART初期化 (ボーレート9600)
@@ -121,10 +145,16 @@
                             const elapsedTime = (endTime - startTime) / 1000;
                             if (elapsedTime < 1) {
                                 document.getElementById("message").innerHTML = "反応時間: " + elapsedTime + "秒</br>Perfect!!!";
+                                var audioId = "perfect";
+                                playAudio(audioId);
                             } else if (elapsedTime < 2) {
                                 document.getElementById("message").innerHTML = "反応時間: " + elapsedTime + "秒</br>Nice!!";
+                                var audioId = "nice";
+                                playAudio(audioId);
                             } else {
                                 document.getElementById("message").innerHTML = "反応時間: " + elapsedTime + "秒</br>おっそ。頑張りましょう。";
+                                var audioId = "bad";
+                                playAudio(audioId);
                             }
                             obnizOrg.close();
                             console.log("Disconnected from obniz");
@@ -159,13 +189,19 @@
                     if (signal == 1) {
                         await wait(2); // LEDライトの点灯まで約2秒のタイムラグがあるため
                         document.getElementById("message").innerHTML = "西日だ!!!</br>目を隠して!!!!";
+                        var audioId = "simulation1";
+                        playAudio(audioId);
                     } else {
                         document.getElementById("message").innerHTML = "突風だ!!!</br>身をこなして!!!!";
+                        var audioId = "simulation2";
+                        playAudio(audioId);
                     }
                     await wait(6);
                     uart.send(signal - 1); // Arduino Sub機にsignalを送信
                     console.log("End signal sent");
                     document.getElementById("message").innerHTML = "Nice!";
+                    var audioId = "nice";
+                    playAudio(audioId);
                     await wait(1);
                     obnizSub.close();
                     console.log("Disconnected from obniz");
@@ -182,6 +218,15 @@
 
         async function wait(second) {
             return new Promise(resolve => setTimeout(resolve, 1000 * second));
+        }
+
+        // 音声を再生する関数
+        function playAudio(voiceID) {
+            console.log("ここまで来てる");
+            const audio = document.getElementById(voiceID);
+            console.log("Playing " + voiceID);
+            audio.currentTime = 0; // 再生位置を先頭に
+            audio.play(); // 再生
         }
     </script>
 </body>
