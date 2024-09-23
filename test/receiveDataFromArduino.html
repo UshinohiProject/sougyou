@@ -1,29 +1,65 @@
 <html>
+
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/css/starter-sample.css">
-    <script src="https://obniz.com/js/jquery-3.2.1.min.js"></script>
-    <script src="https://unpkg.com/obniz@3.31.0/obniz.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/starter-sample.css">
+  <script src="https://obniz.com/js/jquery-3.2.1.min.js"></script>
+  <script src="https://unpkg.com/obniz@3.31.0/obniz.js"></script>
+  <style>
+    div.message {
+      font-size: 100px;
+      text-align: center;
+      color: red;
+    }
+
+    h1 {
+      text-align: center;
+    }
+  </style>
 </head>
+
 <body>
   <h1>Receive Data from Arduino by Obniz</h1>
+  <div id="message" class="message"></div>
 
   <script>
     const obniz = new Obniz("OBNIZ_ID_HERE");
 
-    obniz.onconnect = async function() {
+    obniz.onconnect = async function () {
       console.log("Connected to obniz");
 
       // UART初期化 (ボーレート9600)
       var uart = obniz.getFreeUart();
-      uart.start({ tx:0, rx:1, baud: 9600 });
-      uart.onreceive = function(data) {
-        console.log("data: ")
-        console.log(data[0]); // Arduinoからのデータを表示
+      var message = "";
+      uart.start({ tx: 0, rx: 1, baud: 9600 });
+      uart.onreceive = function (data) {
+        // console.log(data[0]); // Arduinoからのデータを表示
+        switch (data[0]) {
+          case 0:
+            var message = "left break OFF";
+            break;
+          case 1:
+            var message = "left break ON";
+            break;
+          case 2:
+            var message = "left break OFF";
+            break;
+          case 3:
+            var message = "right break ON";
+            break;
+          default:
+            console.warn("Unknown data received: " + data);
+        }
+        updateMessage(message);
       };
     };
+
+    function updateMessage(message) {
+      console.log(message);
+      document.getElementById("message").innerHTML = message;
+    }
   </script>
 </body>
 </html>
