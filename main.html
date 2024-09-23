@@ -38,6 +38,8 @@
         preload="auto"></audio>
     <audio id="simulation2" src="https://raw.githubusercontent.com/UshinohiProject/sougyou/main/voice/simulation2.wav"
         preload="auto"></audio>
+    <audio id="simulation3" src="https://raw.githubusercontent.com/UshinohiProject/sougyou/main/voice/simulation3.wav"
+        preload="auto"></audio>
     <audio id="orientation0" src="https://raw.githubusercontent.com/UshinohiProject/sougyou/main/voice/orientation0.wav"
         preload="auto"></audio>
     <audio id="orientation1" src="https://raw.githubusercontent.com/UshinohiProject/sougyou/main/voice/orientation1.wav"
@@ -75,7 +77,7 @@
             await wait(1);
             document.getElementById("orientation").innerHTML = "";
             for (let i = 0; i < 5; i++) {
-                var randomSimulationNum = Math.floor(Math.random() * 3);
+                var randomSimulationNum = Math.floor(Math.random() * 4);
                 switch (randomSimulationNum) {
                     case 0:
                         console.log("Start BREAK simulation.")
@@ -88,6 +90,10 @@
                     case 2:
                         console.log("Start WIND simulation.")
                         await sendSignalToSubSystem(3);
+                        break;
+                    case 3:
+                        console.log("Start MOMIJI simulation.")
+                        await sendSignalToSubSystem(5);
                         break;
                     default:
                         console.warn("Undefined simulation number selected: " + randomSimulationNum);
@@ -191,9 +197,13 @@
                         document.getElementById("message").innerHTML = "西日だ!!!</br>目を隠して!!!!";
                         var audioId = "simulation1";
                         playAudio(audioId);
-                    } else {
+                    } else if (signal == 3) {
                         document.getElementById("message").innerHTML = "突風だ!!!</br>身をこなして!!!!";
                         var audioId = "simulation2";
+                        playAudio(audioId);
+                    } else {
+                        document.getElementById("message").innerHTML = "もみじにぶつかる!!!</br>避けて!!!!";
+                        var audioId = "simulation3";
                         playAudio(audioId);
                     }
                     await wait(6);
