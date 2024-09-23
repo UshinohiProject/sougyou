@@ -8,3 +8,6 @@
 ## 開発環境
 - Arduino IDE
 - obniz developer's console
+
+## ブロック図
+![Block Diagram](/img/blockDiagram.jpg)
