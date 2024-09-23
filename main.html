@@ -52,6 +52,10 @@
         preload="auto"></audio>
     <audio id="bad" src="https://raw.githubusercontent.com/UshinohiProject/sougyou/main/voice/bad.wav"
         preload="auto"></audio>
+    <audio id="turnRight" src="https://raw.githubusercontent.com/UshinohiProject/sougyou/main/voice/turnRight.wav"
+        preload="auto"></audio>
+    <audio id="turnLeft" src="https://raw.githubusercontent.com/UshinohiProject/sougyou/main/voice/turnLeft.wav"
+        preload="auto"></audio>
 
 
     <script>
@@ -76,7 +80,7 @@
             document.getElementById("orientation").innerHTML = "START";
             await wait(1);
             document.getElementById("orientation").innerHTML = "";
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < 6; i++) {
                 var randomSimulationNum = Math.floor(Math.random() * 4);
                 switch (randomSimulationNum) {
                     case 0:
@@ -94,6 +98,14 @@
                     case 3:
                         console.log("Start MOMIJI simulation.")
                         await sendSignalToSubSystem(5);
+                        break;
+                    case 4:
+                        console.log("Start turning right simulation.")
+                        await turningSimulation(0);
+                        break;
+                    case 5:
+                        console.log("Start turning left simulation.")
+                        await turningSimulation(1);
                         break;
                     default:
                         console.warn("Undefined simulation number selected: " + randomSimulationNum);
@@ -222,6 +234,56 @@
                     console.log("Connection closed with obnizSub.");
                     // 接続が閉じられた場合にも `resolve()` を呼び出す
                     resolve();
+                };
+            });
+        }
+
+        function turningSimulation(direction) {
+            return new Promise((resolve) => {
+                let detectedDirection = 3;
+                const obnizOrg = new Obniz("OBNIZ_ID_HERE");
+                // 0は右、1は左
+                if (direction) {
+                    document.getElementById("message").innerHTML = "そこを左に曲がって!!!!";
+                    var audioId = "turnLeft";
+                    playAudio(audioId);
+                } else {
+                    document.getElementById("message").innerHTML = "この角を右だ!!!!";
+                    var audioId = "turnRight";
+                    playAudio(audioId);
+                }
+
+                obnizOrg.onconnect = async function () {
+                    // UART初期化 (ボーレート9600)
+                    var uart = obnizOrg.getFreeUart();
+                    uart.start({ tx: 0, rx: 1, baud: 9600 });
+                    uart.onreceive = function (data) {
+                        var dataValue = data[0];
+                        console.log("data: " + dataValue);
+
+                        switch (dataValue) {
+                            case 0:
+                                // 右
+                                detectedDirection = 0;
+                                break;
+                            case 1:
+                                // 左
+                                detectedDirection = 1;
+                                break;
+                            default:
+                                console.warn("Unknown data received: " + dataValue);
+                        }
+
+                        if (direction == detectedDirection) {
+                            document.getElementById("message").innerHTML = "Nice!";
+                            var audioId = "nice";
+                            playAudio(audioId);
+
+                            obnizOrg.close();
+                            console.log("Disconnected from obniz");
+                            resolve(); // `Promise`を完了し、次の処理に進める
+                        }
+                    };
                 };
             });
         }
